@@ -6,15 +6,20 @@
  */
 
 
+
 /******************************************************************************/
 /*----------------------------------Includes----------------------------------*/
 /******************************************************************************/
 #include "VoltageSensing.h"
+#include "AccumulatorManager.h"
 #include "HLD.h"
+#include "AdcSensor.h"
 /******************************************************************************/
 /*-----------------------------------Macros-----------------------------------*/
 /******************************************************************************/
-
+#define V0_CONST_A 		1
+#define V0_CONST_B		0
+//FIXME: Arbitraty values
 /******************************************************************************/
 /*--------------------------------Enumerations--------------------------------*/
 /******************************************************************************/
@@ -28,12 +33,14 @@ typedef struct
 	HLD_Vadc_Channel adcChannel;
 	HLD_Vadc_Data data;
 	float32 voltage;
-}VoltageSensor_t;
+}VoltageSensor;
+
+
 
 /******************************************************************************/
 /*------------------------------Global variables------------------------------*/
 /******************************************************************************/
-VoltageSensor_t VoltageSensor0;
+AdcSensor VoltageSensor0;
 
 /******************************************************************************/
 /*-------------------------Function Prototypes--------------------------------*/
@@ -50,14 +57,28 @@ VoltageSensor_t VoltageSensor0;
 /******************************************************************************/
 void VoltageSensing_init(void)
 {
-	HLD_Vadc_Channel_Config adcConfig;
+/* 	HLD_Vadc_Channel_Config adcConfig;
 	HLD_Vadc_initChannelConfig(&adcConfig);
-	adcConfig.channelIn = &HLD_Vadc_AN0_G0CH0_X102_12;
-	HLD_Vadc_initChannel(&VoltageSensor0.adcChannel, &adcConfig);
+	adcConfig.channelIn = &AMS_V0_IN;
+	HLD_Vadc_initChannel(&VoltageSensor0.adcChannel, &adcConfig); //TODO: LPF adc input
+ */
+	AdcSensor_Config config;
+    HLD_Vadc_initChannelConfig(&config.adcConfig);
+
+    config.adcConfig.lpf.config.cutOffFrequency = 1/(2.0*IFX_PI*0.005);
+    config.adcConfig.lpf.config.gain = 1;
+    config.adcConfig.lpf.config.samplingTime = 0.001;
+    config.adcConfig.lpf.activated = TRUE;
+
+	config.adcConfig.channelIn = &AMS_V0_IN;
+	config.tfConfig.a = V0_CONST_A;
+	config.tfConfig.b = V0_CONST_B;
+
+	AdcSensor_initSensor(&VoltageSensor0, &config);
 }
 
 
 void VoltageSensing_run(void)
 {
-	HLD_Vadc_getData(&VoltageSensor0.data, &VoltageSensor0.adcChannel);
+	AdcSensor_getData(&VoltageSensor0);
 }
