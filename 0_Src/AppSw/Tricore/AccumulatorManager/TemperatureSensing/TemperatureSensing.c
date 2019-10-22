@@ -68,11 +68,16 @@ void TemperatureSensing_init(void)
 
         //TODO: sensor-specific tf configuration.
         TemperatureSensing.lut.lut.segmentCount = TemperatureSensorLUTCount;
-        TemperatureSensing.lut.lut.segments = TemperatureSensorLUT;
+        TemperatureSensing.lut.lut.segments = TemperatureSensorLUT_segments;
     }
 }
 
 void TemperatureSensing_run(void)
 {
-
+    for (uint32 index = 0; index < TEMP_SENSOR_NUM; index++)
+    {
+        AdcSensor_getData(&TemperatureSensing.TemperatureSensor[index]);
+        TemperatureSensing.temperature[index] = Ifx_LutLinearF32_searchBin(
+            &TemperatureSensing.lut.lut, TemperatureSensing.TemperatureSensor[index].value);
+    }
 }
