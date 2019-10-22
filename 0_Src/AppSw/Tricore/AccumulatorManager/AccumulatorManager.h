@@ -14,22 +14,23 @@
 #include "HLD.h"
 #include "VoltageSensing.h"
 #include "CurrentSensing.h"
+#include "TemperatureSensing.h"
 
 /******************************************************************************/
 /*-----------------------------------Macros-----------------------------------*/
 /******************************************************************************/
 
-#define AMS_V0_IN   HLD_Vadc_AN0_G0CH0_X102_12
-#define AMS_C0_IN   HLD_Vadc_AN1_G0CH1_X102_11
-#define AMS_C1_IN   HLD_Vadc_AN2_G0CH2_X102_10   
-#define AMS_T0_IN
-#define AMS_T1_IN
-#define AMS_T2_IN
-#define AMS_T3_IN
-#define AMS_T4_IN
-#define AMS_T5_IN
-#define AMS_T6_IN
-#define AMS_T7_IN
+#define AMS_V0_IN   HLD_Vadc_AN11_G0CH11_X103_39
+#define AMS_C0_IN   HLD_Vadc_AN17_G1CH5_X103_37
+#define AMS_C1_IN   HLD_Vadc_AN21_G1CH9_X103_35
+#define AMS_T0_IN	
+#define AMS_T1_IN	
+#define AMS_T2_IN	
+#define AMS_T3_IN	
+#define AMS_T4_IN	HLD_Vadc_AN3_G0CH3_X102_9
+#define AMS_T5_IN	HLD_Vadc_AN0_G0CH0_X102_12
+#define AMS_T6_IN	HLD_Vadc_AN1_G0CH1_X102_11
+#define AMS_T7_IN	HLD_Vadc_AN2_G0CH2_X102_10
 
 /******************************************************************************/
 /*------------------------------Type Definitions------------------------------*/
