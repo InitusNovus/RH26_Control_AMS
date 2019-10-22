@@ -8,6 +8,7 @@
 /* Includes */
 #include "TemperatureSensing.h"
 #include "Vadc.h"
+#include "TemperatureSensorLUT.h"
 
 
 /* Macros */
@@ -19,7 +20,7 @@
 /* Data Structures */
 typedef struct
 {
-
+    Ifx_LutLinearF32    lut;
 }TemperatureSensing_SensorLut;
 
 typedef struct
@@ -64,7 +65,10 @@ void TemperatureSensing_init(void)
     {
         config.adcConfig.channelIn = inputArr[index];
         AdcSensor_initSensor(&TemperatureSensing.TemperatureSensor[index], &config);
+
         //TODO: sensor-specific tf configuration.
+        TemperatureSensing.lut.lut.segmentCount = TemperatureSensorLUTCount;
+        TemperatureSensing.lut.lut.segments = TemperatureSensorLUT;
     }
 }
 
