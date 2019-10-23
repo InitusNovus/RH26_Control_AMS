@@ -44,10 +44,12 @@ void TemperatureSensing_init(void)
     config.adcConfig.lpf.config.gain = 1;
     config.adcConfig.lpf.config.samplingTime = 0.001;
     config.adcConfig.lpf.activated = TRUE;
+    config.isOvervoltageProtected = TRUE;
 
     /* Temperature sensor is not linear, 
-     * so we let sensor tf be y = 1*x + 0 
-     * and use external non-linear transfer function.*/
+     * so we let sensor tf be y = 1*x + 0 = x. It is a unity function.
+     * and use external non-linear transfer function.(Look-up table)
+     */
     config.tfConfig.a = 1;
     config.tfConfig.b = 0;
 
@@ -66,7 +68,6 @@ void TemperatureSensing_init(void)
         config.adcConfig.channelIn = inputArr[index];
         AdcSensor_initSensor(&TemperatureSensing.TemperatureSensor[index], &config);
 
-        //TODO: sensor-specific tf configuration.
         TemperatureSensing.lut.lut.segmentCount = TemperatureSensorLUTCount;
         TemperatureSensing.lut.lut.segments = TemperatureSensorLUT_segments;
     }
