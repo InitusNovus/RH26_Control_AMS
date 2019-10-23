@@ -33,6 +33,12 @@ typedef struct
 /* Function Prototypes */
 IFX_EXTERN void CanCommunication_init(void);
 
+IFX_EXTERN void CanCommunication_receiveMessage(CanCommunication_Message* msg);
+IFX_EXTERN void CanCommunication_resetUpdateState(CanCommunication_Message* msg);
+
+IFX_EXTERN void CanCommunication_transmitMessage(CanCommunication_Message *msg);
+IFX_EXTERN void CanCommunication_setMessageData(uint32 data0, uint32 data1, CanCommunication_Message *msg);
+
 
 
 #endif

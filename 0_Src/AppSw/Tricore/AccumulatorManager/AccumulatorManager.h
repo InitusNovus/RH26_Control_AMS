@@ -15,6 +15,7 @@
 #include "VoltageSensing.h"
 #include "CurrentSensing.h"
 #include "TemperatureSensing.h"
+#include "CanCommunication.h"
 
 /******************************************************************************/
 /*-----------------------------------Macros-----------------------------------*/
