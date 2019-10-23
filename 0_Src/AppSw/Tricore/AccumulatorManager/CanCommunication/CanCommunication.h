@@ -1,0 +1,38 @@
+/* 
+ * CanCommunication.h
+ * Created on 2019. 10. 24.
+ * Author: Dua
+ */
+
+#ifndef CANCOMMUNICATION_H_
+#define CANCOMMUNICATION_H_
+
+
+/* Includes */
+#include <Ifx_Types.h>
+#include <IfxMultican_Can.h>
+#include "Configuration.h"
+
+
+/* Macros */
+#define CANCOMM_MSGID0		0x00100001UL
+
+
+
+/* DataStructures */
+typedef struct
+{
+	IfxMultican_Can_Node* 	node;
+	IfxMultican_Can_MsgObj	obj;
+	IfxMultican_Message		msg;
+	boolean					isUpdated;
+}CanCommunication_Message;
+
+
+
+/* Function Prototypes */
+IFX_EXTERN void CanCommunication_init(void);
+
+
+
+#endif
