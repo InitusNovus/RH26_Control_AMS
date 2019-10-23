@@ -12,6 +12,23 @@
 /* Includes */
 #include "AccumulatorManager.h"
 
+
+/* Macros */
+#define ADCSENSOR_OVP_HI            4.5f
+#define ADCSENSOR_OVP_LO            0.5f
+
+
+
+/* Enumerations */
+typedef enum
+{
+    AdcSensor_Status_ok             = 0b00000000,
+    AdcSensor_Status_errorUnknown   = 0b00000001,
+    AdcSensor_Status_errorTooLow    = 0b00000010,
+    AdcSensor_Status_errorTooHigh   = 0b00000100,
+}AdcSensor_Status;
+
+
 /* Data Structures */
 typedef struct
 {
@@ -24,6 +41,8 @@ typedef struct
         //O = a*X + b
     }tf;
 	float32 value;
+    boolean isOvervoltageProtected;
+    AdcSensor_Status status;
 }AdcSensor;
 
 typedef struct
@@ -34,12 +53,16 @@ typedef struct
         float32 a;
         float32 b;
     }tfConfig;
+    boolean isOvervoltageProtected;
 }AdcSensor_Config;
 
 /* Function Prototypes */
 
 IFX_EXTERN void AdcSensor_initSensor(AdcSensor* sensor, AdcSensor_Config* config);
 IFX_EXTERN float32 AdcSensor_getData(AdcSensor* sensor);
+IFX_EXTERN boolean AdcSensor_isTooHigh(AdcSensor* sensor);
+IFX_EXTERN boolean AdcSensor_isTooLow(AdcSensor* sensor);
+IFX_EXTERN boolean AdnSensor_isError(AdcSensor* sensor);
 
 
 
