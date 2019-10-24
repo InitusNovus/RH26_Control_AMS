@@ -29,6 +29,9 @@ typedef struct
 }CanCommunication_Message;
 
 
+/* Global Variables */
+IFX_EXTERN CanCommunication_Message CanCommunication_message0;
+
 
 /* Function Prototypes */
 IFX_EXTERN void CanCommunication_init(void);

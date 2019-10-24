@@ -19,6 +19,7 @@ void AccumualatorManager_init(void)
     VoltageSensing_init();
     CurrentSensing_init();
     TemperatureSensing_init();
+    CanCommunication_init();
 }
 
 void AccumulatorManager_run_1ms(void)
@@ -26,4 +27,5 @@ void AccumulatorManager_run_1ms(void)
     VoltageSensing_run();
     CurrentSensing_run();
     TemperatureSensing_run();
+    CanCommunication_receiveMessage(&CanCommunication_message0);
 }
