@@ -10,6 +10,7 @@
 
 /* Includes */
 #include <Ifx_Types.h>
+#include <IfxMultican.h>
 #include <IfxMultican_Can.h>
 #include "Configuration.h"
 
@@ -28,6 +29,9 @@ typedef struct
 	boolean					isUpdated;
 }CanCommunication_Message;
 
+
+/* Global Variables */
+IFX_EXTERN CanCommunication_Message CanCommunication_message0;
 
 
 /* Function Prototypes */
