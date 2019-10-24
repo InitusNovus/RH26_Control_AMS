@@ -20,6 +20,9 @@ IfxMultican_Can_Node	CanCommunication_canNode0;
 
 CanCommunication_Message CanCommunication_message0;
 
+/* Private Variables */
+IFX_STATIC IfxMultican_MsgObjId numMsgObj = 0;
+
 
 /* Function Implementation */
 void CanCommunication_init(void)
@@ -44,7 +47,7 @@ void CanCommunication_init(void)
 
 
 	/* Message0 configuration */
-	CanCommunication_Message* ccMsg = &CanCommunication_message0;
+/* 	CanCommunication_Message* ccMsg = &CanCommunication_message0;
 
 	IfxMultican_Can_MsgObj* obj 	= &ccMsg->obj;
 	IfxMultican_Can_Node* node		= (ccMsg->node = &CanCommunication_canNode0);
@@ -64,8 +67,38 @@ void CanCommunication_init(void)
 
 	ccMsg->isUpdated = FALSE;
 	IfxMultican_Message_init(&ccMsg->msg, CANCOMM_MSGID0, 0xdeadbeef, 0xdeadbeef, IfxMultican_DataLengthCode_8);
+ */
+	CanCommunication_Message_Config config;
+	config.messageId		=	CANCOMM_MSGID0;
+	config.frameType		=	IfxMultican_Frame_transmit;
+	config.dataLen			=	IfxMultican_DataLengthCode_8;
+	config.node				=	&CanCommunication_canNode0;
+	CanCommunication_initMessage(&CanCommunication_message0, &config);
 
 }
+
+void CanCommunication_initMessage(CanCommunication_Message* ccMsg, CanCommunication_Message_Config* config)
+{
+	IfxMultican_Can_MsgObj* obj 	= &ccMsg->obj;
+
+	IfxMultican_Can_MsgObjConfig canMsgObjConfig;
+	IfxMultican_Can_MsgObj_initConfig(&canMsgObjConfig, config->node);
+
+	canMsgObjConfig.msgObjId		= numMsgObj;
+	canMsgObjConfig.messageId		= config->messageId;
+	canMsgObjConfig.acceptanceMask	= 0x7FFFFFFFUL;
+	canMsgObjConfig.frame			=config->frameType;
+	canMsgObjConfig.control.messageLen		= config->dataLen;
+	canMsgObjConfig.control.extendedFrame	= TRUE;
+	canMsgObjConfig.control.messageLen		= TRUE;
+	IfxMultican_Can_MsgObj_init(obj, &canMsgObjConfig);
+
+	ccMsg->isUpdated = FALSE;
+	IfxMultican_Message_init(&ccMsg->msg, config->messageId, 0xdeadbeef, 0xdeadbeef,config-> dataLen);
+
+	numMsgObj++;
+}
+
 
 
 
@@ -96,19 +129,11 @@ boolean CanCommunication_receiveMessage(CanCommunication_Message* msg)
 			msg->isUpdated = TRUE;
 		}
 		isReceived = TRUE;
-<<<<<<< HEAD
 	}
 	else 
 	{
 		isReceived = FALSE;
 	}
-=======
-	}
-	else 
-	{
-		isReceived = FALSE;
-	}
->>>>>>> feature/CanCommunicationTest0
 
 	return isReceived;
 }
