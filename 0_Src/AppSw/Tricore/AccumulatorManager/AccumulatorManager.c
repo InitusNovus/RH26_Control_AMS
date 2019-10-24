@@ -32,7 +32,8 @@ void AccumualatorManager_init(void)
     {
         CanCommunication_Message_Config config;
         config.messageId		=	AMS_CAN_MSG_0;
-        config.frameType		=	IfxMultican_Frame_transmit;
+        // config.frameType		=	IfxMultican_Frame_transmit;
+        config.frameType		=	IfxMultican_Frame_receive;
         config.dataLen			=	IfxMultican_DataLengthCode_8;
         config.node				=	&CanCommunication_canNode0;
         CanCommunication_initMessage(&AmsCanMsg0, &config);
@@ -40,7 +41,8 @@ void AccumualatorManager_init(void)
     {
         CanCommunication_Message_Config config;
         config.messageId		=	AMS_CAN_MSG_1;
-        config.frameType		=	IfxMultican_Frame_receive;
+        // config.frameType		=	IfxMultican_Frame_receive;
+        config.frameType		=	IfxMultican_Frame_transmit;
         config.dataLen			=	IfxMultican_DataLengthCode_8;
         config.node				=	&CanCommunication_canNode0;
         CanCommunication_initMessage(&AmsCanMsg1, &config);
@@ -55,10 +57,10 @@ void AccumulatorManager_run_1ms(void)
     TemperatureSensing_run();
     /* CanTest_receive */
     
-    canReceiveState = CanCommunication_receiveMessage(&AmsCanMsg1);
+    canReceiveState = CanCommunication_receiveMessage(&AmsCanMsg0);
     
     /* CanTest_transmit */
-    CanCommunication_setMessageData(0x12345678,0x20191024,&AmsCanMsg0);
-    CanCommunication_transmitMessage(&AmsCanMsg0);
+    CanCommunication_setMessageData(0x87654321,0x20191025,&AmsCanMsg1);
+    CanCommunication_transmitMessage(&AmsCanMsg1);
    
 }
