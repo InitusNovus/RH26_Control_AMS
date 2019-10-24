@@ -11,14 +11,14 @@
 
 
 /* Macros */
-#define CANCOMM_TXTIMEOUT	100
+#define CANCOMM_TXTIMEOUT	31
 
 /* GlobalVariables */
 IfxMultican_Can			CanCommunication_canModule;
 
 IfxMultican_Can_Node	CanCommunication_canNode0;
 
-CanCommunication_Message CanCommunication_message0;
+// CanCommunication_Message CanCommunication_message0;
 
 /* Private Variables */
 IFX_STATIC IfxMultican_MsgObjId numMsgObj = 0;
@@ -68,13 +68,14 @@ void CanCommunication_init(void)
 	ccMsg->isUpdated = FALSE;
 	IfxMultican_Message_init(&ccMsg->msg, CANCOMM_MSGID0, 0xdeadbeef, 0xdeadbeef, IfxMultican_DataLengthCode_8);
  */
+/* 
 	CanCommunication_Message_Config config;
 	config.messageId		=	CANCOMM_MSGID0;
 	config.frameType		=	IfxMultican_Frame_transmit;
 	config.dataLen			=	IfxMultican_DataLengthCode_8;
 	config.node				=	&CanCommunication_canNode0;
 	CanCommunication_initMessage(&CanCommunication_message0, &config);
-
+ */
 }
 
 void CanCommunication_initMessage(CanCommunication_Message* ccMsg, CanCommunication_Message_Config* config)
@@ -129,10 +130,12 @@ boolean CanCommunication_receiveMessage(CanCommunication_Message* msg)
 			msg->isUpdated = TRUE;
 		}
 		isReceived = TRUE;
+		msg->testCount.Success++;
 	}
 	else 
 	{
 		isReceived = FALSE;
+		msg->testCount.Failed++;
 	}
 
 	return isReceived;

@@ -16,7 +16,7 @@
 
 
 /* Macros */
-#define CANCOMM_MSGID0		0x00100001UL
+// #define CANCOMM_MSGID0		0x00100001UL
 
 
 
@@ -44,7 +44,8 @@ typedef struct
 
 
 /* Global Variables */
-IFX_EXTERN CanCommunication_Message CanCommunication_message0;
+IFX_EXTERN IfxMultican_Can_Node	CanCommunication_canNode0;
+// IFX_EXTERN CanCommunication_Message CanCommunication_message0;
 
 
 /* Function Prototypes */
