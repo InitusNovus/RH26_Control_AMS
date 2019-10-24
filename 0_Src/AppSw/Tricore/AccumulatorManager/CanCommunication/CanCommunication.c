@@ -62,8 +62,9 @@ void CanCommunication_init(void)
 
 
 
-void CanCommunication_receiveMessage(CanCommunication_Message* msg)
+boolean CanCommunication_receiveMessage(CanCommunication_Message* msg)
 {
+	boolean isReceived;
 	IfxMultican_Status  readStatus;
 	if(IfxMultican_Can_MsgObj_isRxPending(&msg->obj))
 	{
@@ -78,16 +79,23 @@ void CanCommunication_receiveMessage(CanCommunication_Message* msg)
 		}
 
 		/* if a new data is been received but one lost, report the status */
-		if (readStatus == IfxMultican_Status_newDataButOneLost)
+		if ((readStatus & IfxMultican_Status_newDataButOneLost) == IfxMultican_Status_newDataButOneLost)
 		{
 			printf(" IfxMultican_Can_MsgObj_readMessage for canMsgObj00 returned 0x%04x\n", readStatus);
 		}
 
-		if (readStatus == IfxMultican_Status_newData)
+		if (readStatus & IfxMultican_Status_newData)
 		{
 			msg->isUpdated = TRUE;
 		}
+		isReceived = TRUE;
 	}
+	else 
+	{
+		isReceived = FALSE;
+	}
+
+	return isReceived;
 }
 
 

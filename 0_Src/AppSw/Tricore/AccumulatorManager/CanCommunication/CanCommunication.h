@@ -33,7 +33,7 @@ typedef struct
 /* Function Prototypes */
 IFX_EXTERN void CanCommunication_init(void);
 
-IFX_EXTERN void CanCommunication_receiveMessage(CanCommunication_Message* msg);
+IFX_EXTERN boolean CanCommunication_receiveMessage(CanCommunication_Message* msg);
 IFX_EXTERN void CanCommunication_resetUpdateState(CanCommunication_Message* msg);
 
 IFX_EXTERN void CanCommunication_transmitMessage(CanCommunication_Message *msg);
