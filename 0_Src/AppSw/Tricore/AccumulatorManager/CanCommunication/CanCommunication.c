@@ -9,12 +9,19 @@
 #include <stdio.h>
 #include "CanCommunication.h"
 
+
+/* Macros */
+#define CANCOMM_TXTIMEOUT	200
 /* GlobalVariables */
 IfxMultican_Can			CanCommunication_canModule;
 
 IfxMultican_Can_Node	CanCommunication_canNode0;
 
-CanCommunication_Message CanCommunication_message0;
+// CanCommunication_Message CanCommunication_message0;
+
+/* Private Variables */
+IFX_STATIC IfxMultican_MsgObjId numMsgObj = 0;
+IFX_STATIC sint32 canTransmitTimeout = CANCOMM_TXTIMEOUT;
 
 
 /* Function Implementation */
@@ -38,37 +45,39 @@ void CanCommunication_init(void)
 	canNodeConfig.txPinMode	= IfxPort_OutputMode_pushPull;
 	IfxMultican_Can_Node_init(&CanCommunication_canNode0, &canNodeConfig);
 
+}
 
-	/* Message0 configuration */
-	CanCommunication_Message* ccMsg = &CanCommunication_message0;
-
+void CanCommunication_initMessage(CanCommunication_Message* ccMsg, CanCommunication_Message_Config* config)
+{
 	IfxMultican_Can_MsgObj* obj 	= &ccMsg->obj;
-	IfxMultican_Can_Node* node		= (ccMsg->node = &CanCommunication_canNode0);
-	
-	IfxMultican_Can_MsgObjConfig canMsgObjConfig;
-	IfxMultican_Can_MsgObj_initConfig(&canMsgObjConfig, node);
 
-	canMsgObjConfig.msgObjId		= 0;
-	canMsgObjConfig.messageId		= CANCOMM_MSGID0;
+	IfxMultican_Can_MsgObjConfig canMsgObjConfig;
+	IfxMultican_Can_MsgObj_initConfig(&canMsgObjConfig, config->node);
+
+	canMsgObjConfig.msgObjId		= numMsgObj;
+	canMsgObjConfig.messageId		= config->messageId;
 	canMsgObjConfig.acceptanceMask	= 0x7FFFFFFFUL;
-	canMsgObjConfig.frame			= IfxMultican_Frame_receive;
-	canMsgObjConfig.control.messageLen		= IfxMultican_DataLengthCode_8;
+	canMsgObjConfig.frame			=config->frameType;
+	canMsgObjConfig.control.messageLen		= config->dataLen;
 	canMsgObjConfig.control.extendedFrame	= TRUE;
 	canMsgObjConfig.control.messageLen		= TRUE;
 	IfxMultican_Can_MsgObj_init(obj, &canMsgObjConfig);
 
 	ccMsg->isUpdated = FALSE;
+	IfxMultican_Message_init(&ccMsg->msg, config->messageId, 0xdeadbeef, 0xdeadbeef,config-> dataLen);
+
+	numMsgObj++;
 }
 
 
 
-void CanCommunication_receiveMessage(CanCommunication_Message* msg)
+
+boolean CanCommunication_receiveMessage(CanCommunication_Message* msg)
 {
+	boolean isReceived;
 	IfxMultican_Status  readStatus;
 	if(IfxMultican_Can_MsgObj_isRxPending(&msg->obj))
 	{
-		//IfxMultican_Message_init(&msg->message, 0xdead, 0xdeadbeef, 0xdeadbeef, IfxMultican_DataLengthCode_8);	//Dummy msg.
-
 		readStatus = IfxMultican_Can_MsgObj_readMessage(&msg->obj, &msg->msg);
 
 		/* if no new data is been received report an error */
@@ -78,16 +87,25 @@ void CanCommunication_receiveMessage(CanCommunication_Message* msg)
 		}
 
 		/* if a new data is been received but one lost, report the status */
-		if (readStatus == IfxMultican_Status_newDataButOneLost)
+		if ((readStatus & IfxMultican_Status_newDataButOneLost) == IfxMultican_Status_newDataButOneLost)
 		{
 			printf(" IfxMultican_Can_MsgObj_readMessage for canMsgObj00 returned 0x%04x\n", readStatus);
 		}
 
-		if (readStatus == IfxMultican_Status_newData)
+		if (readStatus & IfxMultican_Status_newData)
 		{
 			msg->isUpdated = TRUE;
 		}
+		isReceived = TRUE;
+		msg->testCount.Success++;
 	}
+	else 
+	{
+		isReceived = FALSE;
+		msg->testCount.Failed++;
+	}
+
+	return isReceived;
 }
 
 
@@ -105,7 +123,17 @@ void CanCommunication_transmitMessage(CanCommunication_Message *msg)
 		msg->isUpdated = TRUE;
 	}
 */
-	while(IfxMultican_Can_MsgObj_sendMessage(&msg->obj, &msg->msg) == IfxMultican_Status_notSentBusy );
+	while(IfxMultican_Can_MsgObj_sendMessage(&msg->obj, &msg->msg) == IfxMultican_Status_notSentBusy )
+	{
+		static uint32 count = 0;
+		count++;
+		if(count >= canTransmitTimeout)
+		{
+			count = 0;
+			break;
+		}
+			
+	}
 	msg->isUpdated = TRUE;
 }
 
