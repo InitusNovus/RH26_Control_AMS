@@ -12,6 +12,11 @@
 #include "CurrentSensing.h"
 #include "TemperatureSensing.h"
 
+/* Global Variables */
+boolean canReceiveState = FALSE;
+uint32 testSuccess = 0;
+uint32 testFail = 0;
+
 
 /* Function Implementation */
 void AccumualatorManager_init(void)
@@ -27,5 +32,7 @@ void AccumulatorManager_run_1ms(void)
     VoltageSensing_run();
     CurrentSensing_run();
     TemperatureSensing_run();
-    CanCommunication_receiveMessage(&CanCommunication_message0);
+    /* CanTest_receive */
+    canReceiveState = CanCommunication_receiveMessage(&CanCommunication_message0);
+    canReceiveState ? testSuccess++ : testFail++;
 }
