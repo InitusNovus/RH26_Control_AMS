@@ -9,6 +9,10 @@
 #include <stdio.h>
 #include "CanCommunication.h"
 
+
+/* Macros */
+#define CANCOMM_TXTIMEOUT	100
+
 /* GlobalVariables */
 IfxMultican_Can			CanCommunication_canModule;
 
@@ -51,13 +55,16 @@ void CanCommunication_init(void)
 	canMsgObjConfig.msgObjId		= 0;
 	canMsgObjConfig.messageId		= CANCOMM_MSGID0;
 	canMsgObjConfig.acceptanceMask	= 0x7FFFFFFFUL;
-	canMsgObjConfig.frame			= IfxMultican_Frame_receive;
+	// canMsgObjConfig.frame			= IfxMultican_Frame_receive;
+	canMsgObjConfig.frame			= IfxMultican_Frame_transmit;
 	canMsgObjConfig.control.messageLen		= IfxMultican_DataLengthCode_8;
 	canMsgObjConfig.control.extendedFrame	= TRUE;
 	canMsgObjConfig.control.messageLen		= TRUE;
 	IfxMultican_Can_MsgObj_init(obj, &canMsgObjConfig);
 
 	ccMsg->isUpdated = FALSE;
+	IfxMultican_Message_init(&ccMsg->msg, CANCOMM_MSGID0, 0xdeadbeef, 0xdeadbeef, IfxMultican_DataLengthCode_8);
+
 }
 
 
@@ -113,7 +120,17 @@ void CanCommunication_transmitMessage(CanCommunication_Message *msg)
 		msg->isUpdated = TRUE;
 	}
 */
-	while(IfxMultican_Can_MsgObj_sendMessage(&msg->obj, &msg->msg) == IfxMultican_Status_notSentBusy );
+	while(IfxMultican_Can_MsgObj_sendMessage(&msg->obj, &msg->msg) == IfxMultican_Status_notSentBusy )
+	{
+		static uint32 count = 0;
+		count++;
+		if(count >= CANCOMM_TXTIMEOUT)
+		{
+			count = 0;
+			break;
+		}
+			
+	}
 	msg->isUpdated = TRUE;
 }
 

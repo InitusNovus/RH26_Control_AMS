@@ -33,6 +33,12 @@ void AccumulatorManager_run_1ms(void)
     CurrentSensing_run();
     TemperatureSensing_run();
     /* CanTest_receive */
+    /* 
     canReceiveState = CanCommunication_receiveMessage(&CanCommunication_message0);
     canReceiveState ? testSuccess++ : testFail++;
+     */
+    /* CanTest_transmit */
+    CanCommunication_setMessageData(0x12345678,0x20191024,&CanCommunication_message0);
+    CanCommunication_transmitMessage(&CanCommunication_message0);
+   
 }

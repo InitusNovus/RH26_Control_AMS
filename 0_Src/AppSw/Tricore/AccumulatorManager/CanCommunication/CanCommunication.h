@@ -10,6 +10,7 @@
 
 /* Includes */
 #include <Ifx_Types.h>
+#include <IfxMultican.h>
 #include <IfxMultican_Can.h>
 #include "Configuration.h"
 
