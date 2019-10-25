@@ -12,6 +12,7 @@
 /*----------------------------------Includes----------------------------------*/
 /******************************************************************************/
 #include "HLD.h"
+#include "Configuration.h"
 #include "VoltageSensing.h"
 #include "CurrentSensing.h"
 #include "TemperatureSensing.h"
@@ -40,6 +41,11 @@
 #define AMS_T6_IN	HLD_Vadc_AN1_G0CH1_X102_11
 #define AMS_T7_IN	HLD_Vadc_AN0_G0CH0_X102_12
 
+#define AMS_B0_IN	ACCUMULATORMANAGER_GPIO0
+#define AMS_B1_IN	ACCUMULATORMANAGER_GPIO1
+#define	AMS_TSAL_IN	ACCUMULATORMANAGER_GPIO2
+#define	AMS_IND_IN	ACCUMULATORMANAGER_GPIO3
+
 /******************************************************************************/
 /*------------------------------Type Definitions------------------------------*/
 /******************************************************************************/
@@ -48,12 +54,34 @@
 /******************************************************************************/
 /*--------------------------------Enumerations--------------------------------*/
 /******************************************************************************/
+typedef enum
+{
+	Accumulator_Bms_Status_cutOff	= 0,
+	Accumulator_Bms_Status_ok,
+}Accumulator_Bms_Status;
 
+typedef enum
+{
+	Accumulator_Tsal_off		= 0,
+	Accumulator_Tsal_ready		= 1,	//Green right
+	Accumulator_Tsal_run		= 2,	//Red right
+}Accumulator_Tsal_Status;
+
+typedef enum 
+{
+	Accumulator_Indicator_off	= 0,
+	Accumulator_Indicator_on,
+}Accumulator_Indicator_Status;
 
 /******************************************************************************/
 /*-----------------------------Data Structures--------------------------------*/
 /******************************************************************************/
-
+typedef struct 
+{
+	Accumulator_Bms_Status 			bms[2];
+	Accumulator_Tsal_Status			tsal;
+	Accumulator_Indicator_Status	indicator;
+}Accumulator_Status_t;
 
 /******************************************************************************/
 /*------------------------------Global variables------------------------------*/
