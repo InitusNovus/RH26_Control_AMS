@@ -5,18 +5,19 @@
  * Author: Dua
  * 
  */
-
+//TODO: Remote configuration via CAN
 /* Includes */
 #include "CurrentSensing.h"
 #include "AccumulatorManager.h"
 #include "AdcSensor.h"
 
 /* Macros */
-#define C0_CONST_A  1
-#define C0_CONST_B  0
-#define C1_CONST_A  1
-#define C1_CONST_B  0
-//FIXME: Arbitrary values
+#define C0_CONST_A  -357.52865414f
+#define C0_CONST_B  894.85768521f
+//FIXME: To reflect C1 circuit test
+#define C1_CONST_A  -357.52865414f
+#define C1_CONST_B  894.85768521f
+//FIXME: Zero adjust
 
 /* Data Structures */
 
@@ -71,7 +72,6 @@ void CurrentSensing_run(void)
     for (uint32 i = 0; i < 2; i++)
     {
         AdcSensor_getData(&CurrentSensing.CurrentSensor[i]);
-        //TODO: Transfer function
         //TODO: Error(Hi/Lo) handling
     }
 }

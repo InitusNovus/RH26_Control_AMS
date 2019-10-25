@@ -26,7 +26,9 @@
 
 #define AMS_V0_IN   HLD_Vadc_AN11_G0CH11_X103_39
 
-#define AMS_C0_IN   HLD_Vadc_AN17_G1CH5_X103_37
+// #define AMS_C0_IN   HLD_Vadc_AN17_G1CH5_X103_37
+//FIXME: AN17 input does not operate.
+#define AMS_C0_IN   HLD_Vadc_AN20_G1CH8_X103_36
 #define AMS_C1_IN   HLD_Vadc_AN21_G1CH9_X103_35
 
 #define AMS_T0_IN	HLD_Vadc_AN10_G0CH10_X102_5

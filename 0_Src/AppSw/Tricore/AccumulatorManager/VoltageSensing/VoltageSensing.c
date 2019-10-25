@@ -17,9 +17,11 @@
 /******************************************************************************/
 /*-----------------------------------Macros-----------------------------------*/
 /******************************************************************************/
-#define V0_CONST_A 		1
-#define V0_CONST_B		0
-//FIXME: Arbitraty values
+#define V0_CONST_A 		-9.2980636458f
+#define V0_CONST_B		100.7315829998f
+// #define V0_CONST_A 		-9.5065117681f
+// #define V0_CONST_B		102.5833640229f
+//FIXME: Real-value test
 /******************************************************************************/
 /*--------------------------------Enumerations--------------------------------*/
 /******************************************************************************/
@@ -53,7 +55,8 @@ void VoltageSensing_init(void)
 	AdcSensor_Config config;
     HLD_Vadc_initChannelConfig(&config.adcConfig);
 
-    config.adcConfig.lpf.config.cutOffFrequency = 1/(2.0*IFX_PI*0.005);		//FIXME: Adjust time constant
+    config.adcConfig.lpf.config.cutOffFrequency = 1/(2.0*IFX_PI*0.05
+	);		//FIXME: Adjust time constant
     config.adcConfig.lpf.config.gain = 1;
     config.adcConfig.lpf.config.samplingTime = 0.001;
     config.adcConfig.lpf.activated = TRUE;

@@ -38,11 +38,21 @@ typedef struct
     {
         float32 a;
         float32 b;
-        //O = a*X + b
+        //y = a*X + b
     }tf;
 	float32 value;
+    float32 unCalValue;
     boolean isOvervoltageProtected;
     AdcSensor_Status status;
+    struct
+    {
+        boolean isAct;
+        float32 a;
+        float32 b;
+        float32 d;
+        //y = a*(x-d) + b
+        //post-calibration after tf value
+    }linCal;
 }AdcSensor;
 
 typedef struct
@@ -54,6 +64,13 @@ typedef struct
         float32 b;
     }tfConfig;
     boolean isOvervoltageProtected;
+    struct
+    {
+        boolean isAct;
+        float32 a;
+        float32 b;
+        float32 d;
+    }linCalConfig;
 }AdcSensor_Config;
 
 /* Function Prototypes */

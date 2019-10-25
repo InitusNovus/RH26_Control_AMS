@@ -25,6 +25,17 @@ void AdcSensor_initSensor(AdcSensor* sensor, AdcSensor_Config* config)
     if(config->isOvervoltageProtected)
         sensor->isOvervoltageProtected = config->isOvervoltageProtected;
 
+    sensor->linCal.a = 1;
+    sensor->linCal.b = 0;
+    sensor->linCal.d = 0;
+    if(config->linCalConfig.isAct)
+    {
+        sensor->linCal.a = config->linCalConfig.a;
+        sensor->linCal.b = config->linCalConfig.b;
+        sensor->linCal.d = config->linCalConfig.d;
+        sensor->linCal.isAct = config->linCalConfig.isAct;
+    }
+
     sensor->status = AdcSensor_Status_ok;
 }
 
@@ -33,20 +44,34 @@ IFX_STATIC float32 AdcSensor_getValueFromAdc(AdcSensor* sensor)
 {
     float32 a = sensor->tf.a;
     float32 b = sensor->tf.b;
-    return sensor->value = a * sensor->data.voltage + b;
+    sensor->unCalValue = a * sensor->data.voltage + b;
+    /* Post calibration */
+    if(sensor->linCal.isAct)
+    {
+        float32 a = sensor->linCal.a;
+        float32 b = sensor->linCal.b;
+        float32 d = sensor->linCal.d;
+        return sensor->value = a * (sensor->unCalValue - d) + b;
+    }
+    else
+    {
+        return sensor->value = sensor->unCalValue;
+    }    
 }
 
 float32 AdcSensor_getData(AdcSensor* sensor)
 {
     float32 value;
+    float32 voltage;
     HLD_Vadc_getData(&sensor->data, &sensor->adcChannel);
     value = AdcSensor_getValueFromAdc(sensor);
+    voltage = sensor->data.voltage;
 
     if(sensor->isOvervoltageProtected)
     {
-        if(value > ADCSENSOR_OVP_HI)
+        if(voltage > ADCSENSOR_OVP_HI)
             sensor->status |= AdcSensor_Status_errorTooHigh;
-        else if(value < ADCSENSOR_OVP_LO)
+        else if(voltage < ADCSENSOR_OVP_LO)
             sensor->status |= AdcSensor_Status_errorTooLow;
         else
             sensor->status = AdcSensor_Status_ok;
