@@ -5,18 +5,19 @@
  * Author: Dua
  * 
  */
-
+//TODO: Remote configuration via CAN
 /* Includes */
 #include "CurrentSensing.h"
 #include "AccumulatorManager.h"
 #include "AdcSensor.h"
 
 /* Macros */
-#define C0_CONST_A  1
-#define C0_CONST_B  0
-#define C1_CONST_A  1
-#define C1_CONST_B  0
-//FIXME: Arbitrary values
+#define C0_CONST_A  -357.52865414f
+#define C0_CONST_B  894.85768521f
+//FIXME: To reflect C1 circuit test
+#define C1_CONST_A  -357.52865414f
+#define C1_CONST_B  894.85768521f
+//FIXME: Zero adjust
 
 /* Data Structures */
 
@@ -41,10 +42,11 @@ void CurrentSensing_init(void)
     AdcSensor_Config config;
     HLD_Vadc_initChannelConfig(&config.adcConfig);
 
-    config.adcConfig.lpf.config.cutOffFrequency = 1/(2.0*IFX_PI*0.005);
+    config.adcConfig.lpf.config.cutOffFrequency = 1/(2.0*IFX_PI*0.005);     //FIXME: Adjust time constant
     config.adcConfig.lpf.config.gain = 1;
     config.adcConfig.lpf.config.samplingTime = 0.001;
     config.adcConfig.lpf.activated = TRUE;
+    config.isOvervoltageProtected = TRUE;
 
     {
         config.adcConfig.channelIn = &AMS_C0_IN;
@@ -70,5 +72,6 @@ void CurrentSensing_run(void)
     for (uint32 i = 0; i < 2; i++)
     {
         AdcSensor_getData(&CurrentSensing.CurrentSensor[i]);
+        //TODO: Error(Hi/Lo) handling
     }
 }

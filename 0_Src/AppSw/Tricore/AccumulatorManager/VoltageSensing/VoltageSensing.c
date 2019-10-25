@@ -17,9 +17,11 @@
 /******************************************************************************/
 /*-----------------------------------Macros-----------------------------------*/
 /******************************************************************************/
-#define V0_CONST_A 		1
-#define V0_CONST_B		0
-//FIXME: Arbitraty values
+#define V0_CONST_A 		-9.2980636458f
+#define V0_CONST_B		100.7315829998f
+// #define V0_CONST_A 		-9.5065117681f
+// #define V0_CONST_B		102.5833640229f
+//FIXME: Real-value test
 /******************************************************************************/
 /*--------------------------------Enumerations--------------------------------*/
 /******************************************************************************/
@@ -28,13 +30,6 @@
 /******************************************************************************/
 /*-----------------------------Data Structures--------------------------------*/
 /******************************************************************************/
-typedef struct
-{
-	HLD_Vadc_Channel adcChannel;
-	HLD_Vadc_Data data;
-	float32 voltage;
-}VoltageSensor;
-
 
 
 /******************************************************************************/
@@ -57,15 +52,11 @@ AdcSensor VoltageSensor0;
 /******************************************************************************/
 void VoltageSensing_init(void)
 {
-/* 	HLD_Vadc_Channel_Config adcConfig;
-	HLD_Vadc_initChannelConfig(&adcConfig);
-	adcConfig.channelIn = &AMS_V0_IN;
-	HLD_Vadc_initChannel(&VoltageSensor0.adcChannel, &adcConfig); //TODO: LPF adc input
- */
 	AdcSensor_Config config;
     HLD_Vadc_initChannelConfig(&config.adcConfig);
 
-    config.adcConfig.lpf.config.cutOffFrequency = 1/(2.0*IFX_PI*0.005);
+    config.adcConfig.lpf.config.cutOffFrequency = 1/(2.0*IFX_PI*0.05
+	);		//FIXME: Adjust time constant
     config.adcConfig.lpf.config.gain = 1;
     config.adcConfig.lpf.config.samplingTime = 0.001;
     config.adcConfig.lpf.activated = TRUE;
@@ -74,6 +65,8 @@ void VoltageSensing_init(void)
 	config.tfConfig.a = V0_CONST_A;
 	config.tfConfig.b = V0_CONST_B;
 
+	config.isOvervoltageProtected = TRUE;
+
 	AdcSensor_initSensor(&VoltageSensor0, &config);
 }
 
@@ -81,4 +74,7 @@ void VoltageSensing_init(void)
 void VoltageSensing_run(void)
 {
 	AdcSensor_getData(&VoltageSensor0);
+	//TODO: Transfer function
+	//TODO: Error(Hi/Lo) handling
+	
 }
