@@ -20,6 +20,23 @@
 #define TEMP_CUT_STK    10
 
 
+/* Data Structures */
+#define AMS_TX0_DLEN    8
+typedef union 
+{
+    struct 
+    {
+        sint16 d0;
+        sint16 d1;
+        sint16 d2;
+        sint16 d3;
+    }S;
+    uint32 B[AMS_TX0_DLEN/4];
+}AmsCanMsg0_data_t;
+
+
+
+
 /* Global Variables */
 Accumulator_Status_t Accumulator_Status =
 {
@@ -37,8 +54,15 @@ boolean canReceiveSbtate = FALSE;
 uint32 testSuccess = 0;
 uint32 testFail = 0;
 
-CanCommunication_Message AmsCanMsg0;
-CanCommunication_Message AmsCanMsg1;
+CanCommunication_Message    AmsCanMsg0;
+AmsCanMsg0_data_t           AmsCanMsg0_data = 
+{
+    .S.d0 = 0,
+    .S.d1 = 0,
+    .S.d2 = 0,
+    .S.d3 = 0,
+};
+CanCommunication_Message    AmsCanMsg1;
 
 Gpio_Debounce_input     AmsB0;
 Gpio_Debounce_input     AmsB1;
@@ -216,13 +240,16 @@ void AccumulatorManager_run_1ms(void)
         IfxPort_setPinLow(AMS_BMSF_OUT.port, AMS_BMSF_OUT.pinIndex);
     }
 
+/* CAN tx message data parsing */
+    
+
+/* CAN message encoding */
+
 
 /* Transmit CAN message */
-    CanCommunication_setMessageData(0x87654321,0x20191025,&AmsCanMsg0);
+    CanCommunication_setMessageData(AmsCanMsg0_data.B[0],AmsCanMsg0_data.B[1],&AmsCanMsg0);
     CanCommunication_transmitMessage(&AmsCanMsg0);
 
     CanCommunication_setMessageData(0x87654321,0x20191025,&AmsCanMsg1);
     CanCommunication_transmitMessage(&AmsCanMsg1);
-
-
 }
