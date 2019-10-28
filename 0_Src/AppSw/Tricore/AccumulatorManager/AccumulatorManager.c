@@ -34,7 +34,7 @@ Accumulator_Status_t Accumulator_Status =
     .ams        = Accumulator_Ams_Status_ok,
 };
 
-boolean canReceiveSbtate = FALSE;
+boolean canReceiveState = FALSE;
 uint32 testSuccess = 0;
 uint32 testFail = 0;
 
