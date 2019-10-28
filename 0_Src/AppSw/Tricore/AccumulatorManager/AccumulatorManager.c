@@ -12,29 +12,13 @@
 #include "CurrentSensing.h"
 #include "TemperatureSensing.h"
 #include "Gpio_Debounce.h"
+#include "AccumulatorManager_CanMessage.h"
 
 
 /* Macros */
 #define DEBOUNCE_BUFLEN 10
 #define TEMP_CUT_DEGC   60.0f
 #define TEMP_CUT_STK    10
-
-
-/* Data Structures */
-#define AMS_TX0_DLEN    8
-typedef union 
-{
-    struct 
-    {
-        sint16 d0;
-        sint16 d1;
-        sint16 d2;
-        sint16 d3;
-    }S;
-    uint32 B[AMS_TX0_DLEN/4];
-}AmsCanMsg0_data_t;
-
-
 
 
 /* Global Variables */
@@ -57,12 +41,15 @@ uint32 testFail = 0;
 CanCommunication_Message    AmsCanMsg0;
 AmsCanMsg0_data_t           AmsCanMsg0_data = 
 {
-    .S.d0 = 0,
-    .S.d1 = 0,
-    .S.d2 = 0,
-    .S.d3 = 0,
+    .S.voltage = 0,
+    .S.current = 0,
+    .S.status.U = 0,
+    .S.err0.U = 0,
+    .S.err1.U = 0
 };
 CanCommunication_Message    AmsCanMsg1;
+AmsCanMsg1_data_t           AmsCanMsg1_data;
+
 
 Gpio_Debounce_input     AmsB0;
 Gpio_Debounce_input     AmsB1;
@@ -70,6 +57,7 @@ Gpio_Debounce_input     AmsTsal;
 Gpio_Debounce_input     AmsInd;
 
 boolean bmsCheck = FALSE;
+boolean bmsFaultCondition = FALSE;
 
 /* Private Function Implementation */
 
@@ -231,6 +219,8 @@ void AccumulatorManager_run_1ms(void)
                                 ||( bmsCheck && 
                                     (Accumulator_Status.bms[0] == Accumulator_Bms_Status_cutOff 
                                         || Accumulator_Status.bms[1] == Accumulator_Bms_Status_cutOff) );
+
+
     if(bmsFaultCondition)
     {
         IfxPort_setPinHigh(AMS_BMSF_OUT.port, AMS_BMSF_OUT.pinIndex);
@@ -240,16 +230,51 @@ void AccumulatorManager_run_1ms(void)
         IfxPort_setPinLow(AMS_BMSF_OUT.port, AMS_BMSF_OUT.pinIndex);
     }
 
-/* CAN tx message data parsing */
-    
+/* CAN tx message data encoding */
 
-/* CAN message encoding */
+    /* CanMsg0 encoding */
+    AmsCanMsg0_data.S.voltage = AmsCanMsg_encodeData(VoltageSensor0.value, &AmsCanMsg_voltageConst);
+    AmsCanMsg0_data.S.current= AmsCanMsg_encodeData(CurrentSensing.current, &AmsCanMsg_currentConst);
+    
+    AmsCanMsg0_data.S.status.B.bms0 = Accumulator_Status.bms[0];
+    AmsCanMsg0_data.S.status.B.bms1 = Accumulator_Status.bms[1];
+    AmsCanMsg0_data.S.status.B.tempStatus = Accumulator_Status.temp;
+    AmsCanMsg0_data.S.status.B.tsal = Accumulator_Status.tsal;
+    AmsCanMsg0_data.S.status.B.amsCut = Accumulator_Status.ams;
+
+    if(VoltageSensor0.status&AdcSensor_Status_errorTooHigh)
+        AmsCanMsg0_data.S.err0.B.V_Hi = TRUE;
+    else
+        AmsCanMsg0_data.S.err0.B.V_Hi = FALSE;
+    
+    if(VoltageSensor0.status&AdcSensor_Status_errorTooLow)
+        AmsCanMsg0_data.S.err0.B.V_Lo = TRUE;
+    else 
+        AmsCanMsg0_data.S.err0.B.V_Lo = FALSE;
+
+    if( (CurrentSensing.CurrentSensor[0].status&AdcSensor_Status_errorTooHigh) || (CurrentSensing.CurrentSensor[1].status&AdcSensor_Status_errorTooHigh) )
+        AmsCanMsg0_data.S.err0.B.I_Hi = TRUE;
+    else
+        AmsCanMsg0_data.S.err0.B.I_Hi = FALSE;
+
+    if( (CurrentSensing.CurrentSensor[0].status&AdcSensor_Status_errorTooLow) || (CurrentSensing.CurrentSensor[1].status&AdcSensor_Status_errorTooLow) )
+        AmsCanMsg0_data.S.err0.B.I_Lo = TRUE;
+    else 
+        AmsCanMsg0_data.S.err0.B.I_Lo = FALSE;
+
+    /* CanMsg1 encoding */
+    for(uint32 index = 0; index < TEMP_SENSOR_NUM; index++)
+    {
+        AmsCanMsg1_data.S.temperature[index] = TemperatureSensing.temperature[index];
+    }
+    
+    
 
 
 /* Transmit CAN message */
-    CanCommunication_setMessageData(AmsCanMsg0_data.B[0],AmsCanMsg0_data.B[1],&AmsCanMsg0);
+    CanCommunication_setMessageData(AmsCanMsg0_data.U[0],AmsCanMsg0_data.U[1],&AmsCanMsg0);
     CanCommunication_transmitMessage(&AmsCanMsg0);
 
-    CanCommunication_setMessageData(0x87654321,0x20191025,&AmsCanMsg1);
+    CanCommunication_setMessageData(AmsCanMsg1_data.U[0],AmsCanMsg1_data.U[1],&AmsCanMsg1);
     CanCommunication_transmitMessage(&AmsCanMsg1);
 }
