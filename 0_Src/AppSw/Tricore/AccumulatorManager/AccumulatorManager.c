@@ -50,7 +50,7 @@ Accumulator_Status_t Accumulator_Status =
     .ams        = Accumulator_Ams_Status_ok,
 };
 
-boolean canReceiveSbtate = FALSE;
+boolean canReceiveState = FALSE;
 uint32 testSuccess = 0;
 uint32 testFail = 0;
 
@@ -86,7 +86,8 @@ void AccumualatorManager_init(void)
     {
         CanCommunication_Message_Config config;
         config.messageId		=	AMS_CAN_MSG_0;
-        config.frameType		=	IfxMultican_Frame_transmit;
+        // config.frameType		=	IfxMultican_Frame_transmit;
+        config.frameType		=	IfxMultican_Frame_receive;
         config.dataLen			=	IfxMultican_DataLengthCode_8;
         config.node				=	&CanCommunication_canNode0;
         CanCommunication_initMessage(&AmsCanMsg0, &config);
@@ -94,7 +95,8 @@ void AccumualatorManager_init(void)
     {
         CanCommunication_Message_Config config;
         config.messageId		=	AMS_CAN_MSG_1;
-        config.frameType		=	IfxMultican_Frame_transmit;
+        // config.frameType		=	IfxMultican_Frame_transmit;
+        config.frameType		=	IfxMultican_Frame_receive;
         config.dataLen			=	IfxMultican_DataLengthCode_8;
         config.node				=	&CanCommunication_canNode0;
         CanCommunication_initMessage(&AmsCanMsg1, &config);
@@ -247,9 +249,21 @@ void AccumulatorManager_run_1ms(void)
 
 
 /* Transmit CAN message */
+
+/*
     CanCommunication_setMessageData(AmsCanMsg0_data.B[0],AmsCanMsg0_data.B[1],&AmsCanMsg0);
     CanCommunication_transmitMessage(&AmsCanMsg0);
 
     CanCommunication_setMessageData(0x87654321,0x20191025,&AmsCanMsg1);
     CanCommunication_transmitMessage(&AmsCanMsg1);
+ */
+
+/* Receive CAN message */
+    canReceiveState = CanCommunication_receiveMessage(&AmsCanMsg0);
+    CanCommunication_receiveMessage(&AmsCanMsg1);
+
+/* CAN rx message data parsing */
+    AmsCanMsg0_data.B[0] = AmsCanMsg0.msg.data[0];
+    AmsCanMsg0_data.B[1] = AmsCanMsg0.msg.data[1];
+
 }
