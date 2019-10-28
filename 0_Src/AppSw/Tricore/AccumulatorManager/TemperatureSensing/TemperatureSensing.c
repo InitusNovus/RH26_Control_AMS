@@ -8,7 +8,6 @@
 /* Includes */
 #include "TemperatureSensing.h"
 #include "Vadc.h"
-#include "TemperatureSensorLUT.h"
 
 
 /* Macros */
@@ -17,18 +16,6 @@
 #define AMS_TN_IN_INIT(n)       inputArr[n] = &AMS_TN_IN(n)
 
 
-/* Data Structures */
-typedef struct
-{
-    Ifx_LutLinearF32    lut;
-}TemperatureSensing_SensorLut;
-
-typedef struct
-{
-    AdcSensor TemperatureSensor[TEMP_SENSOR_NUM];
-    float32 temperature[TEMP_SENSOR_NUM];
-    TemperatureSensing_SensorLut lut;
-}TemperatureSensing_t;
 
 /* Global Variables */
 TemperatureSensing_t TemperatureSensing;

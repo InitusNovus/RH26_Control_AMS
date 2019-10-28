@@ -10,7 +10,8 @@
 #define ADCSENSOR_H_
 
 /* Includes */
-#include "AccumulatorManager.h"
+// #include "AccumulatorManager.h"
+#include "HLD.h"
 
 
 /* Macros */

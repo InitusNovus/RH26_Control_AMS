@@ -16,21 +16,26 @@
 
 /* Macros */
 #define DEBOUNCE_BUFLEN 10
+#define TEMP_CUT_DEGC   60.0f
+#define TEMP_CUT_STK    10
 
 
 /* Global Variables */
 Accumulator_Status_t Accumulator_Status =
 {
-    .bms[0]     = Accumulator_Bms_Status_ok,
-    .bms[1]     = Accumulator_Bms_Status_ok,
     .tsal       = Accumulator_Tsal_off,
     .indicator  = Accumulator_Indicator_off,
+
+    .bms[0]     = Accumulator_Bms_Status_ok,
+    .bms[1]     = Accumulator_Bms_Status_ok,
+    .temp       = Accumulator_Temp_Status_ok,
+    
+    .ams        = Accumulator_Ams_Status_ok,
 };
 
-boolean canReceiveState = FALSE;
+boolean canReceiveSbtate = FALSE;
 uint32 testSuccess = 0;
 uint32 testFail = 0;
-
 
 CanCommunication_Message AmsCanMsg0;
 CanCommunication_Message AmsCanMsg1;
@@ -39,6 +44,8 @@ Gpio_Debounce_input     AmsB0;
 Gpio_Debounce_input     AmsB1;
 Gpio_Debounce_input     AmsTsal;
 Gpio_Debounce_input     AmsInd;
+
+boolean bmsCheck = FALSE;
 
 /* Private Function Implementation */
 
@@ -50,11 +57,12 @@ void AccumualatorManager_init(void)
     CurrentSensing_init();
     TemperatureSensing_init();
     CanCommunication_init();
+
+/* CAN message init */
     {
         CanCommunication_Message_Config config;
         config.messageId		=	AMS_CAN_MSG_0;
-        // config.frameType		=	IfxMultican_Frame_transmit;
-        config.frameType		=	IfxMultican_Frame_receive;
+        config.frameType		=	IfxMultican_Frame_transmit;
         config.dataLen			=	IfxMultican_DataLengthCode_8;
         config.node				=	&CanCommunication_canNode0;
         CanCommunication_initMessage(&AmsCanMsg0, &config);
@@ -62,18 +70,13 @@ void AccumualatorManager_init(void)
     {
         CanCommunication_Message_Config config;
         config.messageId		=	AMS_CAN_MSG_1;
-        // config.frameType		=	IfxMultican_Frame_receive;
         config.frameType		=	IfxMultican_Frame_transmit;
         config.dataLen			=	IfxMultican_DataLengthCode_8;
         config.node				=	&CanCommunication_canNode0;
         CanCommunication_initMessage(&AmsCanMsg1, &config);
     }
-/* 
-    IfxPort_setPinModeInput(AMS_B0_IN.port,AMS_B0_IN.pinIndex,IfxPort_InputMode_noPullDevice);
-    IfxPort_setPinModeInput(AMS_B1_IN.port,AMS_B1_IN.pinIndex,IfxPort_InputMode_noPullDevice);
-    IfxPort_setPinModeInput(AMS_TSAL_IN.port,AMS_TSAL_IN.pinIndex,IfxPort_InputMode_noPullDevice);
-    IfxPort_setPinModeInput(AMS_IND_IN.port,AMS_IND_IN.pinIndex,IfxPort_InputMode_noPullDevice);
- */
+
+/* GPIO init */
     Gpio_Debounce_inputConfig inputConfig;
     Gpio_Debounce_initInputConfig(&inputConfig);
     inputConfig.port = &AMS_B0_IN;
@@ -89,7 +92,8 @@ void AccumualatorManager_init(void)
     inputConfig.port = &AMS_IND_IN;
     Gpio_Debounce_initInput(&AmsInd, &inputConfig);
 
-    
+    IfxPort_setPinModeOutput(AMS_BMSF_OUT.port, AMS_BMSF_OUT.pinIndex, IfxPort_OutputMode_pushPull,IfxPort_OutputIdx_general);
+    IfxPort_setPinLow(AMS_BMSF_OUT.port, AMS_BMSF_OUT.pinIndex);
 
 }
 
@@ -99,66 +103,126 @@ void AccumulatorManager_run_1ms(void)
     CurrentSensing_run();
     TemperatureSensing_run();
 
-    /* GPIO polling */
+/* GPI polling */
+    
+    /* Bms cutoff check */
+    boolean bms0Bar = Gpio_Debounce_pollInput(&AmsB0);
+    if(bms0Bar)
     {
-        boolean bms0Bar = Gpio_Debounce_pollInput(&AmsB0);
-        if(bms0Bar)
-        {
-            Accumulator_Status.bms[0] = Accumulator_Bms_Status_cutOff;
-        }
-        else
-        {
-            Accumulator_Status.bms[0] = Accumulator_Bms_Status_ok;
-        }
-
-        boolean bms1Bar = Gpio_Debounce_pollInput(&AmsB1);
-        if(bms1Bar)
-        {
-            Accumulator_Status.bms[1] = Accumulator_Bms_Status_cutOff;
-        }
-        else
-        {
-            Accumulator_Status.bms[1] = Accumulator_Bms_Status_ok;
-        }
-        
-
-        boolean tsalGreen = Gpio_Debounce_pollInput(&AmsTsal);
-        switch(Accumulator_Status.tsal)
-        {
-            case Accumulator_Tsal_off:
-                if(tsalGreen)
-                { 
-                    Accumulator_Status.tsal = Accumulator_Tsal_ready; break;
-                }
-            case Accumulator_Tsal_ready:
-                if(tsalGreen==FALSE)
-                {
-                     Accumulator_Status.tsal = Accumulator_Tsal_run; break;
-                }
-            case Accumulator_Tsal_run:
-                if(tsalGreen) 
-                {
-                    Accumulator_Status.tsal = Accumulator_Tsal_run; break;
-                }
-        }
-
-        boolean ind = Gpio_Debounce_pollInput(&AmsInd);
-        if(ind)
-        {
-            Accumulator_Status.indicator = Accumulator_Indicator_on;
-        }
-        else
-        {
-            Accumulator_Status.indicator = Accumulator_Indicator_off;
-        }
-        
+        Accumulator_Status.bms[0] = Accumulator_Bms_Status_cutOff;
+    }
+    else
+    {
+        Accumulator_Status.bms[0] = Accumulator_Bms_Status_ok;
     }
 
-    /* CanTest_receive */
-    canReceiveState = CanCommunication_receiveMessage(&AmsCanMsg0);
+    boolean bms1Bar = Gpio_Debounce_pollInput(&AmsB1);
+    if(bms1Bar)
+    {
+        Accumulator_Status.bms[1] = Accumulator_Bms_Status_cutOff;
+    }
+    else
+    {
+        Accumulator_Status.bms[1] = Accumulator_Bms_Status_ok;
+    }
     
-    /* CanTest_transmit */
+    /* TSAL check */
+    boolean tsalGreen = Gpio_Debounce_pollInput(&AmsTsal);
+    switch(Accumulator_Status.tsal)
+    {
+        case Accumulator_Tsal_off:
+            if(tsalGreen)
+            { 
+                Accumulator_Status.tsal = Accumulator_Tsal_ready; break;
+            }
+        case Accumulator_Tsal_ready:
+            if(tsalGreen==FALSE)
+            {
+                    Accumulator_Status.tsal = Accumulator_Tsal_run; break;
+            }
+        case Accumulator_Tsal_run:
+            if(tsalGreen) 
+            {
+                Accumulator_Status.tsal = Accumulator_Tsal_run; break;
+            }
+    }
+
+    /* Battery indicator check */
+    boolean ind = Gpio_Debounce_pollInput(&AmsInd);
+    if(ind)
+    {
+        Accumulator_Status.indicator = Accumulator_Indicator_on;
+    }
+    else
+    {
+        Accumulator_Status.indicator = Accumulator_Indicator_off;
+    }
+    
+
+/* Temperature status check */
+    boolean overTemp = FALSE;
+    for(uint32 index = 0; index < TEMP_SENSOR_NUM; index++)
+    {
+        if(TemperatureSensing.temperature[index] > TEMP_CUT_DEGC)
+        {
+            overTemp = TRUE;
+            break;
+        }
+    }
+
+    static uint32 overTempStack = 0;
+    if(Accumulator_Status.temp == Accumulator_Temp_Status_ok)
+    {
+        if(overTemp)
+        {
+            overTempStack++;
+        }
+        else
+        {
+            overTempStack = 0;
+        }
+        if(overTempStack > TEMP_CUT_STK)
+        {
+            Accumulator_Status.temp = Accumulator_Temp_Status_tempHigh;
+        }
+    }
+    else
+    {
+        if(overTemp)
+        {
+            overTempStack = 0;
+        }
+        else
+        {
+            overTempStack ++;
+        }
+        if(overTempStack > TEMP_CUT_STK)
+        {
+            Accumulator_Status.temp = Accumulator_Temp_Status_ok;
+        }
+    }
+
+/* Update BMS fault output*/
+    boolean bmsFaultCondition = (Accumulator_Status.temp == Accumulator_Temp_Status_tempHigh)
+                                ||( bmsCheck && 
+                                    (Accumulator_Status.bms[0] == Accumulator_Bms_Status_cutOff 
+                                        || Accumulator_Status.bms[1] == Accumulator_Bms_Status_cutOff) );
+    if(bmsFaultCondition)
+    {
+        IfxPort_setPinHigh(AMS_BMSF_OUT.port, AMS_BMSF_OUT.pinIndex);
+    }
+    else
+    {
+        IfxPort_setPinLow(AMS_BMSF_OUT.port, AMS_BMSF_OUT.pinIndex);
+    }
+
+
+/* Transmit CAN message */
+    CanCommunication_setMessageData(0x87654321,0x20191025,&AmsCanMsg0);
+    CanCommunication_transmitMessage(&AmsCanMsg0);
+
     CanCommunication_setMessageData(0x87654321,0x20191025,&AmsCanMsg1);
     CanCommunication_transmitMessage(&AmsCanMsg1);
-   
+
+
 }

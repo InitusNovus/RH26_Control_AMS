@@ -11,7 +11,21 @@
 
 /* Includes */
 #include "AccumulatorManager.h"
-#include "HLD.h"
+#include "AdcSensor.h"
+// #include "HLD.h"
+
+
+
+/* Data Structures */
+typedef struct
+{
+    AdcSensor CurrentSensor[2];
+    float32 current;
+}CurrentSensing_t;
+
+
+/* Global Variables */
+IFX_EXTERN CurrentSensing_t CurrentSensing;
 
 /* Function Prototypes */
 IFX_EXTERN void CurrentSensing_init(void);
