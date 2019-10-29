@@ -223,10 +223,12 @@ void AccumulatorManager_run_1ms(void)
 
     if(bmsFaultCondition)
     {
+        Accumulator_Status.ams = TRUE;
         IfxPort_setPinHigh(AMS_BMSF_OUT.port, AMS_BMSF_OUT.pinIndex);
     }
     else
     {
+        Accumulator_Status.ams = FALSE;
         IfxPort_setPinLow(AMS_BMSF_OUT.port, AMS_BMSF_OUT.pinIndex);
     }
 

@@ -66,4 +66,5 @@ void CurrentSensing_run(void)
         AdcSensor_getData(&CurrentSensing.CurrentSensor[i]);
         //TODO: Error(Hi/Lo) handling
     }
+    CurrentSensing.current = (CurrentSensing.CurrentSensor[0].value + CurrentSensing.CurrentSensor[1].value)/2;
 }
