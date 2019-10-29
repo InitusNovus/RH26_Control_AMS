@@ -59,6 +59,9 @@ Gpio_Debounce_input     AmsInd;
 boolean bmsCheck = FALSE;
 boolean bmsFaultCondition = FALSE;
 
+float32 temperatureHighest;
+float32 tempTemperatureHighest = -1;
+
 /* Private Function Implementation */
 
 
@@ -173,14 +176,20 @@ void AccumulatorManager_run_1ms(void)
 
 /* Temperature status check */
     boolean overTemp = FALSE;
+    tempTemperatureHighest = -1;
     for(uint32 index = 0; index < TEMP_SENSOR_NUM; index++)
     {
-        if(TemperatureSensing.temperature[index] > TEMP_CUT_DEGC)
+        float32 temp = TemperatureSensing.temperature[index];
+        if(temp > TEMP_CUT_DEGC)
         {
             overTemp = TRUE;
-            break;
+        }
+        if(temp > tempTemperatureHighest)
+        {
+            tempTemperatureHighest = temp;
         }
     }
+    temperatureHighest = tempTemperatureHighest;
 
     static uint32 overTempStack = 0;
     if(Accumulator_Status.temp == Accumulator_Temp_Status_ok)
