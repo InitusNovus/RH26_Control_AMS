@@ -1,26 +1,20 @@
 /*
- * VoltageSensing.c
+ * FloatSeperation.c
  *
- *  Created on: 2019. 10. 18.
- *      Author: Dua
+ *  Created on: 2019. 7. 8.
+ *      Author: bigbi_000
  */
-
 
 
 /******************************************************************************/
 /*----------------------------------Includes----------------------------------*/
 /******************************************************************************/
-#include "VoltageSensing.h"
-#include "AccumulatorManager.h"
 #include "HLD.h"
+#include <math.h>
 /******************************************************************************/
 /*-----------------------------------Macros-----------------------------------*/
 /******************************************************************************/
-#define V0_CONST_A 		-9.2980636458f
-#define V0_CONST_B		100.7315829998f
-// #define V0_CONST_A 		-9.5065117681f
-// #define V0_CONST_B		102.5833640229f
-//FIXME: Real-value test
+
 /******************************************************************************/
 /*--------------------------------Enumerations--------------------------------*/
 /******************************************************************************/
@@ -34,7 +28,7 @@
 /******************************************************************************/
 /*------------------------------Global variables------------------------------*/
 /******************************************************************************/
-AdcSensor VoltageSensor0;
+
 
 /******************************************************************************/
 /*-------------------------Function Prototypes--------------------------------*/
@@ -49,31 +43,44 @@ AdcSensor VoltageSensor0;
 /******************************************************************************/
 /*-------------------------Function Implementations---------------------------*/
 /******************************************************************************/
-void VoltageSensing_init(void)
+boolean pos = TRUE;
+sint32 intpart;
+uint32 fracpart;
+void Separate_int_frac (sint32* intPart, uint32* fracPart, float32 num, uint32 roundnum)
 {
-	AdcSensor_Config config;
-    HLD_Vadc_initChannelConfig(&config.adcConfig);
+	boolean negative = 0;
+	if(num < 0)
+	{
+		num = - num;
+		negative = TRUE;
+	}
+	else
+		negative = FALSE;
+//	test_num = num;
 
-    config.adcConfig.lpf.config.cutOffFrequency = 1/(2.0*IFX_PI*0.05
-	);		//FIXME: Adjust time constant
-    config.adcConfig.lpf.config.gain = 1;
-    config.adcConfig.lpf.config.samplingTime = 0.001;
-    config.adcConfig.lpf.activated = TRUE;
+	intpart = (sint32) num;
+	if(negative == FALSE)
+		//		intpart = (SINT_32) num;
+		pos = TRUE;
+	else
+		//		intpart = -((SINT_32)num);
+		pos = FALSE;
+	//	if(negative == FALSE)
+	//	fracpart = floor((((num-intpart))*pow(10,roundnum))+0.5);
+	//	else
+	//		fracpart = floor((((num+intpart))*pow(10,roundnum))+0.5);
+	fracpart = floor((((num-intpart))*pow(10,roundnum))+0.5);
 
-	config.adcConfig.channelIn = &AMS_V0_IN;
-	config.tfConfig.a = V0_CONST_A;
-	config.tfConfig.b = V0_CONST_B;
+	if(fracpart == pow(10,roundnum))
+	{
+		++intpart;
+		fracpart = 0;
+	}
 
-	config.isOvervoltageProtected = TRUE;
-
-	AdcSensor_initSensor(&VoltageSensor0, &config);
-}
-
-
-void VoltageSensing_run(void)
-{
-	AdcSensor_getData(&VoltageSensor0);
-	//TODO: Transfer function
-	//TODO: Error(Hi/Lo) handling
-	
+	if(negative)
+	{
+		intpart = - intpart;
+	}
+	*intPart = intpart;
+	*fracPart = fracpart;
 }

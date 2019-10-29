@@ -9,7 +9,7 @@
 /* Includes */
 #include "CurrentSensing.h"
 #include "AccumulatorManager.h"
-#include "AdcSensor.h"
+
 
 /* Macros */
 #define C0_CONST_A  -357.52865414f
@@ -19,14 +19,6 @@
 #define C1_CONST_B  894.85768521f
 //FIXME: Zero adjust
 
-/* Data Structures */
-
-
-typedef struct
-{
-    AdcSensor CurrentSensor[2];
-    float32 current;
-}CurrentSensing_t;
 
 
 
@@ -74,4 +66,5 @@ void CurrentSensing_run(void)
         AdcSensor_getData(&CurrentSensing.CurrentSensor[i]);
         //TODO: Error(Hi/Lo) handling
     }
+    CurrentSensing.current = (CurrentSensing.CurrentSensor[0].value + CurrentSensing.CurrentSensor[1].value)/2;
 }

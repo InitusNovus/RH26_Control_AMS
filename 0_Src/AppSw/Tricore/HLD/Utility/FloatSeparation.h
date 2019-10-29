@@ -1,18 +1,18 @@
 /*
- * VoltageSensing.h
- *
- *  Created on: 2019. 10. 18.
- *      Author: Dua
+ * FloatSeparation.h
+ * 2019. 7. 8.
  */
-
-#ifndef SRC_APPSW_TRICORE_ACCUMULATORMANAGER_VOLTAGESENSING_VOLTAGESENSING_H_
-#define SRC_APPSW_TRICORE_ACCUMULATORMANAGER_VOLTAGESENSING_VOLTAGESENSING_H_
+#ifndef _FLOATSEPARATION_H_
+#define _FLOATSEPARATION_H_
 
 /******************************************************************************/
 /*----------------------------------Includes----------------------------------*/
 /******************************************************************************/
-#include "AdcSensor.h"
 
+#include <Ifx_Types.h>
+#include "Configuration.h"
+#include "ConfigurationIsr.h"
+#include "IfxPort.h"
 /******************************************************************************/
 /*-----------------------------------Macros-----------------------------------*/
 /******************************************************************************/
@@ -36,14 +36,12 @@
 /******************************************************************************/
 /*------------------------------Global variables------------------------------*/
 /******************************************************************************/
-IFX_EXTERN AdcSensor VoltageSensor0;
+
 
 /******************************************************************************/
 /*-------------------------Function Prototypes--------------------------------*/
 /******************************************************************************/
-void VoltageSensing_init(void);
-
-void VoltageSensing_run(void);
+IFX_EXTERN void Separate_int_frac (sint32* intPart, uint32* fracPart, float32 num, uint32 roundnum);
 
 /******************************************************************************/
 /*---------------------Inline Function Implementations------------------------*/
@@ -51,4 +49,4 @@ void VoltageSensing_run(void);
 
 
 
-#endif
+#endif /* 0_SRC_APPSW_TRICORE_HLD_USERINTERFACE_FLOATSEPERATION_H_ */
